@@ -171,6 +171,22 @@ export const KeycapSettings = () => {
     return <div className="flex flex-col p-6 gap-y-4">
         <h1 className="text-xl font-semibold">Keycap</h1>
 
+        <Item variant="muted">
+            <ItemContent>
+                <ItemTitle>Indicator size</ItemTitle>
+                <ItemDescription>Resize keycaps, labels, and icons together</ItemDescription>
+            </ItemContent>
+            <ItemActions>
+                <NumberInput
+                    aria-label="Keypress indicator size"
+                    value={text.size}
+                    onChange={(size) => setTextStyle({ size })}
+                    minValue={8}
+                    className="w-28 h-8"
+                />
+            </ItemActions>
+        </Item>
+
         <h2 className="text-sm text-muted-foreground font-medium">Preset</h2>
         <Item variant="muted">
             <ItemActions className="w-full">
@@ -240,18 +256,6 @@ export const KeycapSettings = () => {
                         className="w-full h-48 text-2xl"
                     />
                     <ItemGroup>
-                        <Item variant="muted" className="flex-2">
-                            <ItemContent>
-                                <ItemTitle>Size</ItemTitle>
-                            </ItemContent>
-                            <ItemActions>
-                                <NumberInput
-                                    value={text.size}
-                                    onChange={(value) => setTextStyle({ size: value })} minValue={8}
-                                    className="w-28 h-8"
-                                />
-                            </ItemActions>
-                        </Item>
                         <Item variant="muted" className="flex-2">
                             <ItemContent>
                                 <ItemTitle>Variant</ItemTitle>

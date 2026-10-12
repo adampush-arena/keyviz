@@ -49,6 +49,7 @@ fn mouse_position_on_monitor(
 pub fn start_listener(app_handle: AppHandle, toggle_menu_item: MenuItem<Wry>) {
     thread::spawn(move || {
         println!("Starting global input listener...");
+        let status_app = app_handle.clone();
 
         if let Err(err) = listen(move |event| {
             // get app state
@@ -146,6 +147,11 @@ pub fn start_listener(app_handle: AppHandle, toggle_menu_item: MenuItem<Wry>) {
             app_handle.emit("input-event", input_event).unwrap();
         }) {
             eprintln!("rdev listen failed: {:?}", err);
+            if let Ok(mut state) = status_app.state::<Mutex<AppState>>().lock() {
+                state.listener_error = Some(format!("{err:?}"));
+                state.restart_required = true;
+            }
+            super::permissions::notify_input_access_problem(&status_app);
         }
     });
 }

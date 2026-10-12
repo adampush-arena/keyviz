@@ -44,11 +44,24 @@ Fully quit the running Keyviz, replace the installed Applications copy with that
 bundle, and launch the Applications copy.
 
 Locally signed rebuilds can invalidate macOS's saved Input Monitoring approval.
-If menus work but no inputs appear, remove and re-add the installed Keyviz in
-System Settings → Privacy & Security → Input Monitoring, enable it, and restart
-Keyviz. Check Accessibility approval as well if needed. Close the settings window
-when testing expiry: indicators intentionally remain visible while settings are
-open.
+Keyviz checks access at startup and while running, and opens its settings when
+input access is blocked. Use **Open Input Monitoring** to reach the macOS pane.
+If Keyviz is already enabled there, expand **Already enabled, but still not
+working?** and choose **Renew approval**. This clears only Keyviz's Input
+Monitoring approval. **Show this app in Finder** identifies the running copy to
+add and enable. Use **Restart Keyviz** after granting access to reconnect the
+input listener. Check Accessibility approval as well if needed.
+
+Close the settings window when testing expiry: indicators intentionally remain
+visible while settings are open.
+
+## Indicator controls
+
+- **Keycap → Indicator size** resizes the keypress cards, labels, and icons.
+- **Mouse → Cursor Highlight** has independent left- and right-click colors.
+  Existing settings keep their old highlight color for left clicks; right clicks
+  default to orange-red. The click color stays consistent through release and
+  fade.
 
 ## Bring in upstream updates
 

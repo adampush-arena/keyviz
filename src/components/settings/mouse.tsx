@@ -4,7 +4,7 @@ import { NumberInput } from "@/components/ui/number-input";
 import { Switch } from "@/components/ui/switch";
 import { useKeyEvent } from "@/stores/key_event";
 import { useKeyStyle } from '@/stores/key_style';
-import { ArrowExpand02Icon, Cursor01Icon, CursorCircleSelection01Icon, CursorEdit01Icon, CursorMagicSelection03FreeIcons, Drag03Icon, KeyboardIcon, Link02Icon, MouseLeftClick05Icon, PaintBoardIcon, Unlink02Icon } from "@hugeicons/core-free-icons";
+import { ArrowExpand02Icon, Cursor01Icon, CursorCircleSelection01Icon, CursorEdit01Icon, CursorMagicSelection03FreeIcons, Drag03Icon, Link02Icon, MouseLeftClick05Icon, PaintBoardIcon, Unlink02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { NumberScrubber } from "../ui/number-input-scrub";
 import { useState } from "react";
@@ -61,7 +61,7 @@ export const MouseSettings = () => {
             <Item variant="muted">
                 <ItemContent>
                     <ItemTitle>
-                        <HugeiconsIcon icon={PaintBoardIcon} size="1em" /> Color
+                        <HugeiconsIcon icon={PaintBoardIcon} size="1em" /> Left click color
                     </ItemTitle>
                 </ItemContent>
                 <ItemActions>
@@ -74,6 +74,25 @@ export const MouseSettings = () => {
                 </ItemActions>
             </Item>
         </ItemGrid>
+
+        <Item variant="muted">
+            <ItemContent>
+                <ItemTitle>
+                    <HugeiconsIcon icon={PaintBoardIcon} size="1em" /> Right click color
+                </ItemTitle>
+                <ItemDescription>
+                    Use a different ring color for right clicks
+                </ItemDescription>
+            </ItemContent>
+            <ItemActions>
+                <ColorInput
+                    className="w-32"
+                    value={mouse.rightClickColor}
+                    onChange={(rightClickColor) => setMouseStyle({ rightClickColor })}
+                    disabled={!mouse.showClicks}
+                />
+            </ItemActions>
+        </Item>
 
         <Item variant="muted">
             <ItemContent>

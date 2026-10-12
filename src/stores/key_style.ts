@@ -66,6 +66,7 @@ export interface MouseSettings {
     size: number;
     color: string;
     keepHighlight: boolean;
+    rightClickColor: string;
     showIndicator: boolean;
     keepIndicator: boolean;
     indicatorSize: number;
@@ -151,6 +152,7 @@ const createKeyStyleStore = createSyncedStore<KeyStyleStore>(
             showClicks: false,
             size: 150,
             color: "#009dff",
+            rightClickColor: "#ff5b45",
             keepHighlight: false,
             showIndicator: true,
             keepIndicator: true,
@@ -198,7 +200,7 @@ const createKeyStyleStore = createSyncedStore<KeyStyleStore>(
                     text: parsedData.text,
                     border: parsedData.border,
                     background: parsedData.background,
-                    mouse: parsedData.mouse,
+                    mouse: { ...get().mouse, ...parsedData.mouse },
                 }));
                 toast.success("Imported successfully", { description: filePath });
             } catch (err) {
@@ -237,6 +239,12 @@ const createKeyStyleStore = createSyncedStore<KeyStyleStore>(
     (config) => persist(config, {
         name: KEY_STYLE_STORE,
         storage: createJSONStorage(() => tauriStorage),
+        // Older settings files have a single click color. Keep it for left clicks
+        // and fill in new mouse options from the defaults.
+        merge: (persisted, current) => {
+            const saved = persisted as Partial<KeyStyleState> | undefined;
+            return { ...current, ...saved, mouse: { ...current.mouse, ...saved?.mouse } };
+        },
     }),
 );
 

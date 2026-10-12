@@ -12,6 +12,7 @@ const isMacos = platform() === "macos";
 export const MouseOverlay = () => {
     const wheel = useKeyEvent(state => state.mouse.wheel);
     const pressedMouseButton = useKeyEvent(state => state.pressedMouseButton);
+    const lastMouseButton = useKeyEvent(state => state.mouse.lastButton);
     const style = useKeyStyle(state => state.mouse);
     const animationDuration = useKeyStyle(state => state.appearance.animationDuration);
 
@@ -107,7 +108,9 @@ export const MouseOverlay = () => {
                             borderWidth: style.size / 20,
                         }}
                         style={{
-                            borderColor: style.color,
+                            // Retain the click's color through the minimum display
+                            // time and fade, even after the button is released.
+                            borderColor: lastMouseButton === "Right" ? style.rightClickColor : style.color,
                             borderStyle: "solid",
                             borderRadius: "50%",
                         }}

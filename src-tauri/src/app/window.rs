@@ -1,3 +1,29 @@
+use tauri::{Emitter, Manager};
+
+pub fn show_settings_window(app: &tauri::AppHandle) -> Result<(), String> {
+    if let Some(window) = app.get_webview_window("settings") {
+        window.show().map_err(|err| err.to_string())?;
+        window.unminimize().map_err(|err| err.to_string())?;
+        return window.set_focus().map_err(|err| err.to_string());
+    }
+
+    tauri::WebviewWindowBuilder::new(
+        app,
+        "settings",
+        tauri::WebviewUrl::App("index.html#/settings".into()),
+    )
+    .title("Keyviz")
+    .inner_size(800.0, 640.0)
+    .min_inner_size(640.0, 480.0)
+    .max_inner_size(1000.0, 800.0)
+    .maximizable(false)
+    .build()
+    .map_err(|err| err.to_string())?;
+
+    app.emit_to("main", "settings-window", true)
+        .map_err(|err| err.to_string())
+}
+
 pub fn config_window(window: &tauri::WebviewWindow) {
     window
         .set_ignore_cursor_events(true)

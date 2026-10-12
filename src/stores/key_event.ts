@@ -26,6 +26,7 @@ export interface KeyEventState {
         lastScrollAt?: number;
         dragStart?: { x: number; y: number; };
         dragging: boolean;
+        lastButton?: MouseButton;
     };
     // ───────────── visual state ─────────────
     settingsOpen: boolean;
@@ -305,6 +306,7 @@ const createKeyEventStore = createSyncedStore<KeyEventStore>(
             // set drag start position
             const mouse = {
                 ...state.mouse,
+                lastButton: event.button,
                 dragStart: { x: state.mouse.x, y: state.mouse.y },
             };
 

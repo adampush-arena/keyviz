@@ -5,6 +5,7 @@ import { VERSION } from "@/components/settings/about";
 import { ThemeModeToggle } from "@/components/theme-mode-toggle";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { InputAccessNotice } from "@/components/input-access-notice";
 import { SidebarItem } from "@/components/ui/sidebar-item";
 import { ComputerIcon, InformationSquareIcon, KeyboardIcon, Mouse09Icon, Settings03Icon } from "@hugeicons/core-free-icons";
 
@@ -44,6 +45,7 @@ const Settings = () => {
             </div>
             <Separator orientation="vertical" />
             <ScrollArea className="flex-1 relative">
+                <InputAccessNotice />
                 {activeTab === "General" && <GeneralSettings />}
                 {activeTab === "Appearance" && <AppearanceSettings />}
                 {activeTab === "Keycap" && <KeycapSettings />}
