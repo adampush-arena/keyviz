@@ -11,6 +11,8 @@ const SCROLL_LINGER_MS = 300;
 interface KeyGroup {
     keys: KeyEvent[];
     createdAt: number;
+    // A combination starts its shared timeout only after its last key is released.
+    releasedAt?: number;
 }
 
 export interface KeyEventState {
@@ -169,7 +171,7 @@ const createKeyEventStore = createSyncedStore<KeyEventStore>(
                     let groupKeys = <KeyEvent[]>[];
                     groups[last].keys.forEach(gKey => {
                         if (gKey.name === key.name) {
-                            // update existing key's pressed count and time
+                            // update existing key's pressed count
                             existingKey.press();
                             groupKeys.push(existingKey);
                         } else if (gKey.in(pressedKeys)) {
@@ -202,6 +204,10 @@ const createKeyEventStore = createSyncedStore<KeyEventStore>(
                     }
                 }
             }
+            // Pressing into the latest combination cancels its previous timeout.
+            const latest = groups.length - 1;
+            groups[latest] = { ...groups[latest], releasedAt: undefined };
+
             // ensure max history
             if (state.showEventHistory && groups.length > state.maxHistory) {
                 groups = groups.slice(groups.length - state.maxHistory);
@@ -224,17 +230,21 @@ const createKeyEventStore = createSyncedStore<KeyEventStore>(
             // track physical state
             const pressedKeys = state.pressedKeys.filter(keyName => keyName !== event.name);
 
-            // update last pressed time
-            const groups = [...state.groups];
-            const last = groups.length - 1;
-
-            const kIndex = last >= 0 ? groups[last].keys.findIndex(key => key.name === event.name) : undefined;
-            if (kIndex && kIndex >= 0) {
-                groups[last].keys[kIndex].lastPressedAt = Date.now();
-                set({ pressedKeys, groups });
-            } else {
-                set({ pressedKeys });
-            }
+            // Finish every active combination containing this key, including
+            // history entries that share a held modifier. Completed entries keep
+            // their own deadline even when the same keys are pressed again.
+            const now = Date.now();
+            const groups = state.groups.map(group => {
+                if (
+                    group.releasedAt === undefined &&
+                    group.keys.some(key => key.name === event.name) &&
+                    !group.keys.some(key => key.in(pressedKeys))
+                ) {
+                    return { ...group, releasedAt: now };
+                }
+                return group;
+            });
+            set({ pressedKeys, groups });
         },
         onMouseMove(event: MouseMoveEvent) {
             const state = get();
@@ -251,17 +261,27 @@ const createKeyEventStore = createSyncedStore<KeyEventStore>(
                 if (dragDistance > state.dragThreshold) {
                     mouse.dragging = true;
 
-                    // remove mouse button from pressed keys
-                    const pressedKeys = state.pressedKeys.filter(keyName => keyName !== state.pressedMouseButton?.toString());
-
-                    // remove mouse button from last group
-                    const groups = [...state.groups];
-                    const last = groups.length - 1;
-                    if (last >= 0) {
-                        groups[last].keys = groups[last].keys.filter(key => key.name !== state.pressedMouseButton?.toString());
+                    // Release the click before replacing it with a drag so older
+                    // history combinations also receive their shared timeout.
+                    if (state.pressedMouseButton) {
+                        state.onKeyRelease({
+                            type: "KeyEvent",
+                            name: state.pressedMouseButton.toString(),
+                            pressed: false,
+                        });
                     }
 
-                    set({ pressedKeys, mouse, groups });
+                    // remove mouse button from last group
+                    const groups = [...get().groups];
+                    const last = groups.length - 1;
+                    if (last >= 0) {
+                        groups[last] = {
+                            ...groups[last],
+                            keys: groups[last].keys.filter(key => key.name !== state.pressedMouseButton?.toString()),
+                        };
+                    }
+
+                    set({ mouse, groups });
 
                     // Check if group has any keys to visualize (in combination) or simulate drag if allowed
                     const hasGroupKeys = last >= 0 && groups[last].keys.length > 0;
@@ -352,10 +372,6 @@ const createKeyEventStore = createSyncedStore<KeyEventStore>(
             // todo: remove pressed keys with unsually long linger duration
             const state = get();
             const now = Date.now();
-            let notify = false;
-
-            const groups = <KeyGroup[]>[];
-
             // handle scroll linger
             if (state.mouse.lastScrollAt && now - state.mouse.lastScrollAt > SCROLL_LINGER_MS) {
                 if (state.pressedKeys.includes(RawKey.ScrollUp)) {
@@ -367,29 +383,22 @@ const createKeyEventStore = createSyncedStore<KeyEventStore>(
                 set({ mouse: { ...state.mouse, wheel: 0, lastScrollAt: undefined } });
             }
 
+            // Scroll expiry above may have released a combination. Use that
+            // updated state so cleanup cannot restore its previous deadline.
+            const currentState = get();
+
             // don't remove keys while styling
-            if (state.settingsOpen) return;
+            if (currentState.settingsOpen) return;
 
-            // remove keys that have exceeded linger duration
-            for (const group of state.groups) {
-                const updatedKeys = group.keys.filter((key) => {
-                    // keep key if
-                    return (
-                        // is pressed
-                        state.pressedKeys.includes(key.name) ||
-                        // within linger duration 
-                        now - key.lastPressedAt < state.lingerDurationMs
-                    );
-                })
-                if (updatedKeys.length !== group.keys.length) {
-                    notify = true;
-                }
-                if (updatedKeys.length > 0) {
-                    groups.push({ keys: updatedKeys, createdAt: group.createdAt });
-                }
-            }
+            // Keep or expire each combination as a whole, never individual keys.
+            const groups = currentState.groups.filter(group =>
+                group.keys.length > 0 && (
+                    group.releasedAt === undefined ||
+                    now - group.releasedAt < currentState.lingerDurationMs
+                )
+            );
 
-            if (notify) {
+            if (groups.length !== currentState.groups.length) {
                 set({ groups });
             }
         }

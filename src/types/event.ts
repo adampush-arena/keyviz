@@ -199,17 +199,14 @@ export const MODIFIERS = new Set<string>([
 export class KeyEvent {
   name: string;
   pressedCount: number;
-  lastPressedAt: number;
 
   constructor(name: string) {
     this.name = name;
     this.pressedCount = 1;
-    this.lastPressedAt = Date.now();
   }
 
   press() {
     this.pressedCount += 1;
-    this.lastPressedAt = Date.now();
   }
 
   isModifier(): boolean {

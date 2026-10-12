@@ -145,7 +145,7 @@ export const AppearanceSettings = () => {
                     <HugeiconsIcon icon={Time03Icon} size="1em" /> Duration
                 </ItemTitle>
                 <ItemDescription className="max-w-84">
-                    The duration keys stay on screen (in seconds)
+                    Seconds a key or combination stays visible after all its keys are released
                 </ItemDescription>
             </ItemContent>
             <ItemActions>
